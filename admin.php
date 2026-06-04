@@ -1,70 +1,66 @@
 <?php
 
-echo '<pre>';
-var_dump($_SERVER['REMOTE_USER'] ?? null);
-echo '</pre>';
+require 'db.php';
+$pdo = connectDB();
 
-exit;
 /*
 |--------------------------------------------------------------------------
-| HTTP AUTH
+| FIX HTTP BASIC AUTH (KubSU fix)
 |--------------------------------------------------------------------------
 */
 
-if (
-    !isset(
-        $_SERVER['PHP_AUTH_USER']
-    )
-) {
+// иногда Apache не кладёт PHP_AUTH_USER
+if (!isset($_SERVER['PHP_AUTH_USER'])) {
 
-    header(
-        'WWW-Authenticate: Basic realm="Admin Area"'
-    );
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        $auth = $_SERVER['HTTP_AUTHORIZATION'];
+    } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $auth = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    } else {
+        $auth = null;
+    }
 
-    header(
-        'HTTP/1.0 401 Unauthorized'
-    );
-
-    exit(
-        'Требуется авторизация'
-    );
+    if ($auth && stripos($auth, 'basic ') === 0) {
+        $decoded = base64_decode(substr($auth, 6));
+        list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = explode(':', $decoded, 2);
+    }
 }
 
-$stmt =
-    $pdo->prepare("
-        SELECT *
-        FROM adminn
-        WHERE login = ?
-    ");
+/*
+|--------------------------------------------------------------------------
+| AUTH CHECK
+|--------------------------------------------------------------------------
+*/
 
-$stmt->execute([
-    $_SERVER['PHP_AUTH_USER']
-]);
+if (empty($_SERVER['PHP_AUTH_USER'])) {
 
-$admin =
-    $stmt->fetch();
+    header('WWW-Authenticate: Basic realm="Admin Area"');
+    header('HTTP/1.0 401 Unauthorized');
+
+    exit('Требуется авторизация');
+}
+
+$stmt = $pdo->prepare("
+    SELECT *
+    FROM adminn
+    WHERE login = ?
+");
+
+$stmt->execute([$_SERVER['PHP_AUTH_USER']]);
+
+$admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (
     !$admin ||
     !password_verify(
-    $_SERVER['PHP_AUTH_PW'],
-    $admin['password_hash']
-)
+        $_SERVER['PHP_AUTH_PW'],
+        $admin['password_hash']
+    )
 ) {
-
-    header(
-        'WWW-Authenticate: Basic realm="Admin Area"'
-    );
-
-    header(
-        'HTTP/1.0 401 Unauthorized'
-    );
-
-    exit(
-        'Неверный логин или пароль'
-    );
+    header('WWW-Authenticate: Basic realm="Admin Area"');
+    header('HTTP/1.0 401 Unauthorized');
+    exit('Неверный логин или пароль');
 }
-
 /*
 |--------------------------------------------------------------------------
 | DELETE
