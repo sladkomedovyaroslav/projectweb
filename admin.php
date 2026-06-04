@@ -48,7 +48,7 @@ if (
     !$admin ||
     !password_verify(
         $_SERVER['PHP_AUTH_PW'],
-        $admin['$2y$10$mlqz5/ST7QvHl0oWf3hi.ejfJ1Jo5fNoY0AeGUoBTi99FfvV/UM1K']
+        $admin['$2y$10$m1qz5/ST7QvHlo0Wf3hi.ejfJ1Jo5fNoY0AeGUoBTi99FfvV/UMlK']
     )
 ) {
 
