@@ -50,9 +50,9 @@ $admin =
 if (
     !$admin ||
     !password_verify(
-        $_SERVER['PHP_AUTH_PW'],
-        $admin['$2y$10$m1qz5/ST7QvHlo0Wf3hi.ejfJ1Jo5fNoY0AeGUoBTi99FfvV/UMlK']
-    )
+    $_SERVER['PHP_AUTH_PW'],
+    $admin['password_hash']
+)
 ) {
 
     header(
