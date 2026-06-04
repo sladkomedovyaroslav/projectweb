@@ -1,14 +1,10 @@
 <?php
 
-require 'db.php';
-
-$pdo = connectDB();
-
 echo '<pre>';
-print_r($_SERVER);
+var_dump($_SERVER['REMOTE_USER'] ?? null);
 echo '</pre>';
-exit;
 
+exit;
 /*
 |--------------------------------------------------------------------------
 | HTTP AUTH
