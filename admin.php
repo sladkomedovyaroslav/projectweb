@@ -1,12 +1,13 @@
 <?php
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 require 'db.php';
 
 $pdo = connectDB();
 
+echo '<pre>';
+print_r($_SERVER);
+echo '</pre>';
+exit;
 
 /*
 |--------------------------------------------------------------------------
