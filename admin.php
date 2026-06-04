@@ -3,36 +3,37 @@
 require 'db.php';
 $pdo = connectDB();
 
+<?php
+
+require 'db.php';
+$pdo = connectDB();
+
 /*
 |--------------------------------------------------------------------------
-| FIX HTTP BASIC AUTH (KubSU fix)
+| HTTP BASIC AUTH SAFE MODE (KubSU compatible)
 |--------------------------------------------------------------------------
 */
 
-// иногда Apache не кладёт PHP_AUTH_USER
-if (!isset($_SERVER['PHP_AUTH_USER'])) {
+// пробуем получить логин/пароль
+$login = $_SERVER['PHP_AUTH_USER'] ?? null;
+$pass  = $_SERVER['PHP_AUTH_PW'] ?? null;
 
-    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
-        $auth = $_SERVER['HTTP_AUTHORIZATION'];
-    } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
-        $auth = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
-    } else {
-        $auth = null;
-    }
+// если не пришли — пробуем через заголовок
+if (!$login && isset($_SERVER['HTTP_AUTHORIZATION'])) {
 
-    if ($auth && stripos($auth, 'basic ') === 0) {
-        $decoded = base64_decode(substr($auth, 6));
-        list($_SERVER['PHP_AUTH_USER'], $_SERVER['PHP_AUTH_PW']) = explode(':', $decoded, 2);
+    if (stripos($_SERVER['HTTP_AUTHORIZATION'], 'basic ') === 0) {
+
+        $decoded = base64_decode(substr($_SERVER['HTTP_AUTHORIZATION'], 6));
+
+        if ($decoded && strpos($decoded, ':') !== false) {
+
+            [$login, $pass] = explode(':', $decoded, 2);
+        }
     }
 }
 
-/*
-|--------------------------------------------------------------------------
-| AUTH CHECK
-|--------------------------------------------------------------------------
-*/
-
-if (empty($_SERVER['PHP_AUTH_USER'])) {
+// если всё равно пусто → просим авторизацию
+if (!$login) {
 
     header('WWW-Authenticate: Basic realm="Admin Area"');
     header('HTTP/1.0 401 Unauthorized');
@@ -40,28 +41,28 @@ if (empty($_SERVER['PHP_AUTH_USER'])) {
     exit('Требуется авторизация');
 }
 
+// ищем админа
 $stmt = $pdo->prepare("
     SELECT *
     FROM adminn
     WHERE login = ?
 ");
 
-$stmt->execute([$_SERVER['PHP_AUTH_USER']]);
+$stmt->execute([$login]);
 
 $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
+// проверяем пароль
 if (
     !$admin ||
-    !password_verify(
-        $_SERVER['PHP_AUTH_PW'],
-        $admin['password_hash']
-    )
+    !password_verify($pass, $admin['password_hash'])
 ) {
+
     header('WWW-Authenticate: Basic realm="Admin Area"');
     header('HTTP/1.0 401 Unauthorized');
+
     exit('Неверный логин или пароль');
 }
-/*
 |--------------------------------------------------------------------------
 | DELETE
 |--------------------------------------------------------------------------
