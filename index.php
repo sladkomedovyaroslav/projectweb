@@ -6,7 +6,6 @@ require 'db.php';
 
 $pdo = connectDB();
 
-<link rel="stylesheet" href="style.css">
 
 $tableTypes =
     $pdo
