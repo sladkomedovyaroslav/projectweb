@@ -2,7 +2,6 @@
 
 session_start();
 
-<link rel="stylesheet" href="style.css">
 
 require 'db.php';
 
@@ -63,8 +62,12 @@ if (
 Авторизация
 </title>
 
+<link
+    rel="stylesheet"
+    href="style.css"
+>
+
 </head>
-<body>
 
 <h1>
 Вход

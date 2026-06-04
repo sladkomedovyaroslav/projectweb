@@ -4,7 +4,6 @@ require 'db.php';
 
 $pdo = connectDB();
 
-<link rel="stylesheet" href="style.css">
 
 /*
 |--------------------------------------------------------------------------
@@ -193,6 +192,11 @@ $stats =
 Админка
 
 </title>
+
+<link
+    rel="stylesheet"
+    href="style.css"
+>
 
 </head>
 <body>
