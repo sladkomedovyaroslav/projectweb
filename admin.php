@@ -5,15 +5,15 @@ $pdo = connectDB();
 
 /*
 |--------------------------------------------------------------------------
-| HTTP BASIC AUTH (KubSU SAFE)
+| SAFE BASIC AUTH (KubSU FIX)
 |--------------------------------------------------------------------------
 */
 
-$login = $_SERVER['PHP_AUTH_USER'] ?? null;
-$pass  = $_SERVER['PHP_AUTH_PW'] ?? null;
+$login = $_SERVER['PHP_AUTH_USER'] ?? '';
+$pass  = $_SERVER['PHP_AUTH_PW'] ?? '';
 
-// fallback (если сервер не передаёт PHP_AUTH)
-if (!$login && isset($_SERVER['HTTP_AUTHORIZATION'])) {
+// если PHP_AUTH не работает — пробуем HTTP header
+if ($login === '' && isset($_SERVER['HTTP_AUTHORIZATION'])) {
 
     if (stripos($_SERVER['HTTP_AUTHORIZATION'], 'basic ') === 0) {
 
@@ -26,16 +26,27 @@ if (!$login && isset($_SERVER['HTTP_AUTHORIZATION'])) {
     }
 }
 
-// если нет логина → просим авторизацию
-if (!$login) {
+/*
+|--------------------------------------------------------------------------
+| PREVENT INFINITE LOOP (ВАЖНО!)
+|--------------------------------------------------------------------------
+*/
 
-    header('WWW-Authenticate: Basic realm="Admin Area"');
+// если браузер уже пытался → не зацикливаемся
+if ($login === '') {
+
     header('HTTP/1.0 401 Unauthorized');
 
+    // ❗ убрали WWW-Authenticate чтобы не было цикла
     exit('Требуется авторизация');
 }
 
-// ищем админа
+/*
+|--------------------------------------------------------------------------
+| CHECK USER
+|--------------------------------------------------------------------------
+*/
+
 $stmt = $pdo->prepare("
     SELECT *
     FROM adminn
@@ -46,19 +57,15 @@ $stmt->execute([$login]);
 
 $admin = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// проверка пароля
 if (
     !$admin ||
     !$pass ||
     !password_verify($pass, $admin['password_hash'])
 ) {
 
-    header('WWW-Authenticate: Basic realm="Admin Area"');
-    header('HTTP/1.0 401 Unauthorized');
-
+    header('HTTP/1.0 403 Forbidden');
     exit('Неверный логин или пароль');
 }
-
 /*
 |--------------------------------------------------------------------------
 | DELETE
