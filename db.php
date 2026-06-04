@@ -1,5 +1,8 @@
 <?php
 
+
+echo "NEW DB FILE";
+exit;
 function connectDB()
 {
     return new PDO(
