@@ -3,8 +3,8 @@
 function connectDB()
 {
     return new PDO(
-        'mysql:host=localhost;dbname=u68592;charset=utf8mb4',
-        'u68592',
+        'mysql:host=localhost;dbname=u82683;charset=utf8mb4',
+        'u82683',
         '1511698',
         [
             PDO::ATTR_ERRMODE =>
