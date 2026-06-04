@@ -4,6 +4,8 @@ require 'db.php';
 
 $pdo = connectDB();
 
+<link rel="stylesheet" href="style.css">
+
 /*
 |--------------------------------------------------------------------------
 | HTTP AUTH
@@ -32,7 +34,7 @@ if (
 $stmt =
     $pdo->prepare("
         SELECT *
-        FROM admins
+        FROM adminn
         WHERE login = ?
     ");
 
@@ -258,7 +260,7 @@ $stats =
     as $reservation
 ): ?>
 
-<form method="POST">
+<form method="POST" class="admin-card">
 
 <input
     type="hidden"
@@ -297,7 +299,8 @@ $stats =
 </button>
 
 <a
-href="admin.php?delete=<?= $reservation['id'] ?>"
+    class="delete-link"
+    href="admin.php?delete=<?= $reservation['id'] ?>"
 onclick="
 return confirm(
 'Удалить запись?'

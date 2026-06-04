@@ -2,6 +2,8 @@
 
 session_start();
 
+<link rel="stylesheet" href="style.css">
+
 require 'db.php';
 
 $pdo = connectDB();
